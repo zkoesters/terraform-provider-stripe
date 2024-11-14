@@ -1,9 +1,10 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright (c) 2024 Zachary Koesters
 // SPDX-License-Identifier: MPL-2.0
 
 package provider
 
 import (
+	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
@@ -15,11 +16,11 @@ import (
 // CLI command executed to create a provider server to which the CLI can
 // reattach.
 var testAccProtoV6ProviderFactories = map[string]func() (tfprotov6.ProviderServer, error){
-	"scaffolding": providerserver.NewProtocol6WithError(New("test")()),
+	"stripe": providerserver.NewProtocol6WithError(New("test")()),
 }
 
 func testAccPreCheck(t *testing.T) {
-	// You can add code here to run prior to any test case execution, for example assertions
-	// about the appropriate environment variables being set are common to see in a pre-check
-	// function.
+	if apiKey := os.Getenv("STRIPE_API_KEY"); apiKey == "" {
+		t.Fatal("STRIPE_API_KEY must be set for acceptance tests")
+	}
 }

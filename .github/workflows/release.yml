@@ -1,3 +1,5 @@
+# Copyright (c) 2024 Zachary Koesters
+
 # Terraform Provider release workflow.
 name: Release
 
