@@ -466,15 +466,26 @@ func (r *CouponResource) buildUpdateParams(ctx context.Context, state, plan Coup
 	}
 
 	if !plan.Metadata.Equal(state.Metadata) {
-		for k, v := range plan.Metadata.Elements() {
+		planMetadata := plan.Metadata.Elements()
+		stateMetadata := state.Metadata.Elements()
+		for k, v := range planMetadata {
 			if str, ok := v.(types.String); ok {
 				params.AddMetadata(k, str.ValueString())
+			}
+		}
+		for k := range stateMetadata {
+			if _, exists := planMetadata[k]; !exists {
+				params.AddMetadata(k, "")
 			}
 		}
 	}
 
 	if !plan.Name.Equal(state.Name) {
-		params.Name = plan.Name.ValueStringPointer()
+		if plan.Name.IsNull() {
+			params.Name = stripe.String("")
+		} else {
+			params.Name = plan.Name.ValueStringPointer()
+		}
 	}
 
 	return params

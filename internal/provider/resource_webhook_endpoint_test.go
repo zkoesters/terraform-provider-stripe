@@ -150,11 +150,11 @@ func TestBuildCreateParamsWebhookEndpointResource(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			r := &WebhookEndpointResource{}
 			params := r.buildCreateParams(tt.plan)
-			require.Equal(t, tt.expected.EnabledEvents, params.EnabledEvents)
-			require.Equal(t, tt.expected.URL, params.URL)
-			require.Equal(t, tt.expected.Description, params.Description)
-			require.Equal(t, tt.expected.Metadata, params.Metadata)
-			require.Equal(t, tt.expected.APIVersion, params.APIVersion)
+			require.Equal(t, tt.expected.EnabledEvents, params.EnabledEvents, "EnabledEvents should match")
+			require.Equal(t, tt.expected.URL, params.URL, "URL should match")
+			require.Equal(t, tt.expected.Description, params.Description, "Description should match")
+			require.Equal(t, tt.expected.Metadata, params.Metadata, "Metadata should match")
+			require.Equal(t, tt.expected.APIVersion, params.APIVersion, "APIVersion should match")
 		})
 	}
 }
@@ -176,6 +176,18 @@ func TestBuildUpdateParamsWebhookEndpointResource(t *testing.T) {
 			},
 			expected: stripe.WebhookEndpointParams{
 				Description: stripe.String("New description"),
+			},
+		},
+		{
+			name: "remove description",
+			state: WebhookEndpointResourceModel{
+				Description: types.StringValue("Description"),
+			},
+			plan: WebhookEndpointResourceModel{
+				Description: types.StringNull(),
+			},
+			expected: stripe.WebhookEndpointParams{
+				Description: stripe.String(""),
 			},
 		},
 		{
@@ -201,6 +213,20 @@ func TestBuildUpdateParamsWebhookEndpointResource(t *testing.T) {
 			expected: stripe.WebhookEndpointParams{
 				Metadata: map[string]string{
 					"key": "new_value",
+				},
+			},
+		},
+		{
+			name: "remove metadata",
+			state: WebhookEndpointResourceModel{
+				Metadata: testMapValue(t, types.StringType, map[string]interface{}{"key": types.StringValue("value")}),
+			},
+			plan: WebhookEndpointResourceModel{
+				Metadata: types.MapNull(types.StringType),
+			},
+			expected: stripe.WebhookEndpointParams{
+				Metadata: map[string]string{
+					"key": "",
 				},
 			},
 		},
