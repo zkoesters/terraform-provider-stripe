@@ -323,7 +323,7 @@ func TestBuildUpdateParamsCouponResource(t *testing.T) {
 		want  *stripe.CouponParams
 	}{
 		{
-			name: "No change",
+			name: "no change",
 			state: CouponResourceModel{
 				CurrencyOptions: types.MapNull(types.ObjectType{
 					AttrTypes: CouponCurrencyOptionsModel{}.Types(),
@@ -341,7 +341,7 @@ func TestBuildUpdateParamsCouponResource(t *testing.T) {
 			want: &stripe.CouponParams{},
 		},
 		{
-			name: "Change name only",
+			name: "change name only",
 			state: CouponResourceModel{
 				CurrencyOptions: types.MapNull(types.ObjectType{
 					AttrTypes: CouponCurrencyOptionsModel{}.Types(),
@@ -361,7 +361,27 @@ func TestBuildUpdateParamsCouponResource(t *testing.T) {
 			},
 		},
 		{
-			name: "Change metadata only",
+			name: "remove name only",
+			state: CouponResourceModel{
+				CurrencyOptions: types.MapNull(types.ObjectType{
+					AttrTypes: CouponCurrencyOptionsModel{}.Types(),
+				}),
+				Name:     types.StringValue("name"),
+				Metadata: types.MapNull(types.StringType),
+			},
+			plan: CouponResourceModel{
+				CurrencyOptions: types.MapNull(types.ObjectType{
+					AttrTypes: CouponCurrencyOptionsModel{}.Types(),
+				}),
+				Name:     types.StringNull(),
+				Metadata: types.MapNull(types.StringType),
+			},
+			want: &stripe.CouponParams{
+				Name: stripe.String(""),
+			},
+		},
+		{
+			name: "change metadata only",
 			state: CouponResourceModel{
 				CurrencyOptions: types.MapNull(types.ObjectType{
 					AttrTypes: CouponCurrencyOptionsModel{}.Types(),
@@ -377,11 +397,14 @@ func TestBuildUpdateParamsCouponResource(t *testing.T) {
 				Metadata: types.MapValueMust(types.StringType, map[string]attr.Value{"meta2": types.StringValue("value2")}),
 			},
 			want: &stripe.CouponParams{
-				Metadata: map[string]string{"meta2": "value2"},
+				Metadata: map[string]string{
+					"meta1": "",
+					"meta2": "value2",
+				},
 			},
 		},
 		{
-			name: "Change currency options only",
+			name: "change currency options only",
 			state: CouponResourceModel{
 				CurrencyOptions: types.MapValueMust(
 					types.ObjectType{

@@ -25,6 +25,7 @@ import (
 )
 
 var _ resource.Resource = &WebhookEndpointResource{}
+var _ resource.ResourceWithConfigure = &WebhookEndpointResource{}
 var _ resource.ResourceWithImportState = &WebhookEndpointResource{}
 
 func NewWebhookEndpointResource() resource.Resource {
@@ -341,7 +342,11 @@ func (r *WebhookEndpointResource) buildCreateParams(plan WebhookEndpointResource
 func (r *WebhookEndpointResource) buildUpdateParams(state, plan WebhookEndpointResourceModel) *stripe.WebhookEndpointParams {
 	params := &stripe.WebhookEndpointParams{}
 	if !plan.Description.Equal(state.Description) {
-		params.Description = plan.Description.ValueStringPointer()
+		if plan.Description.IsNull() {
+			params.Description = stripe.String("")
+		} else {
+			params.Description = plan.Description.ValueStringPointer()
+		}
 	}
 	if !plan.Disabled.Equal(state.Disabled) {
 		params.Disabled = plan.Disabled.ValueBoolPointer()
@@ -350,9 +355,16 @@ func (r *WebhookEndpointResource) buildUpdateParams(state, plan WebhookEndpointR
 		params.EnabledEvents = convertListToStringPtrs(plan.EnabledEvents)
 	}
 	if !plan.Metadata.Equal(state.Metadata) {
-		for k, v := range plan.Metadata.Elements() {
+		planMetadata := plan.Metadata.Elements()
+		stateMetadata := state.Metadata.Elements()
+		for k, v := range planMetadata {
 			if str, ok := v.(types.String); ok {
 				params.AddMetadata(k, str.ValueString())
+			}
+		}
+		for k := range stateMetadata {
+			if _, exists := planMetadata[k]; !exists {
+				params.AddMetadata(k, "")
 			}
 		}
 	}
