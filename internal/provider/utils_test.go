@@ -4,6 +4,8 @@
 package provider
 
 import (
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
+	"github.com/stripe/stripe-go/v81"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
@@ -146,4 +148,24 @@ func equalStringPtrSlices(a, b []*string) bool {
 		}
 	}
 	return true
+}
+
+func TestEmptyStringIfNull(t *testing.T) {
+	tests := []struct {
+		name  string
+		input basetypes.StringValue
+		want  *string
+	}{
+		{"null", types.StringNull(), stripe.String("")},
+		{"non-empty", types.StringValue("test"), stripe.String("test")},
+		{"empty", types.StringValue(""), stripe.String("")},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := EmptyStringIfNull(tt.input); *got != *tt.want {
+				t.Errorf("EmptyStringIfNull() = %v, want %v", *got, *tt.want)
+			}
+		})
+	}
 }

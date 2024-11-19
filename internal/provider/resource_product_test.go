@@ -145,7 +145,7 @@ func TestPopulateModelProductResource(t *testing.T) {
 				MarketingFeatures:   types.ListNull(types.StringType),
 				Metadata:            testMapValue(t, types.StringType, nil),
 				Name:                types.StringValue(""),
-				PackageDimensions:   buildPackageDimensionsModel(t, 0, 0, 0, 0),
+				PackageDimensions:   types.ObjectNull(ProductPackageDimensionsResourceModel{}.Types()),
 				Shippable:           types.BoolValue(false),
 				StatementDescriptor: types.StringNull(),
 				TaxCode:             types.StringNull(),
@@ -306,7 +306,7 @@ func TestBuildUpdateParamsProductResource(t *testing.T) {
 				Description:         stripe.String("A new product"),
 				Images:              []*string{stripe.String("new_image1"), stripe.String("new_image2")},
 				MarketingFeatures:   []*stripe.ProductMarketingFeatureParams{{Name: stripe.String("New Feature")}},
-				Metadata:            map[string]string{"foo": "bar"},
+				Metadata:            map[string]string{"key": "", "foo": "bar"},
 				Name:                stripe.String("New Product"),
 				PackageDimensions:   &stripe.ProductPackageDimensionsParams{Height: stripe.Float64(1.5), Length: stripe.Float64(2.0), Weight: stripe.Float64(0.5), Width: stripe.Float64(1.0)},
 				Shippable:           stripe.Bool(true),
@@ -364,7 +364,10 @@ func TestBuildUpdateParamsProductResource(t *testing.T) {
 			},
 			expected: &stripe.ProductParams{
 				MarketingFeatures: []*stripe.ProductMarketingFeatureParams{},
-				Metadata:          map[string]string{"key2": "value2"},
+				Metadata: map[string]string{
+					"key1": "",
+					"key2": "value2",
+				},
 			},
 		},
 	}

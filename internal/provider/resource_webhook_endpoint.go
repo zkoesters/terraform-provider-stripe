@@ -342,11 +342,7 @@ func (r *WebhookEndpointResource) buildCreateParams(plan WebhookEndpointResource
 func (r *WebhookEndpointResource) buildUpdateParams(state, plan WebhookEndpointResourceModel) *stripe.WebhookEndpointParams {
 	params := &stripe.WebhookEndpointParams{}
 	if !plan.Description.Equal(state.Description) {
-		if plan.Description.IsNull() {
-			params.Description = stripe.String("")
-		} else {
-			params.Description = plan.Description.ValueStringPointer()
-		}
+		params.Description = EmptyStringIfNull(plan.Description)
 	}
 	if !plan.Disabled.Equal(state.Disabled) {
 		params.Disabled = plan.Disabled.ValueBoolPointer()

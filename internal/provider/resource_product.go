@@ -123,6 +123,7 @@ func (r *ProductResource) Schema(ctx context.Context, req resource.SchemaRequest
 				Validators: []validator.List{
 					listvalidator.UniqueValues(),
 					listvalidator.SizeAtMost(15),
+					listvalidator.ValueStringsAre(stringvalidator.LengthAtMost(80)),
 				},
 			},
 			"metadata": schema.MapAttribute{
@@ -375,7 +376,7 @@ func (r *ProductResource) populateModel(ctx context.Context, model *ProductResou
 	}
 	model.Metadata = MapValueNullIfEmpty(metadata, types.StringType)
 	model.Name = types.StringValue(product.Name)
-	if product.PackageDimensions != nil {
+	if product.PackageDimensions != nil && product.PackageDimensions.Height != 0 && product.PackageDimensions.Length != 0 && product.PackageDimensions.Weight != 0 && product.PackageDimensions.Width != 0 {
 		p, diags := types.ObjectValueFrom(
 			ctx,
 			ProductPackageDimensionsResourceModel{}.Types(),
@@ -481,10 +482,10 @@ func (r *ProductResource) buildUpdateParams(ctx context.Context, state, plan Pro
 		params.Active = plan.Active.ValueBoolPointer()
 	}
 	if !plan.DefaultPrice.Equal(state.DefaultPrice) {
-		params.DefaultPrice = plan.DefaultPrice.ValueStringPointer()
+		params.DefaultPrice = EmptyStringIfNull(plan.DefaultPrice)
 	}
 	if !plan.Description.Equal(state.Description) {
-		params.Description = plan.Description.ValueStringPointer()
+		params.Description = EmptyStringIfNull(plan.Description)
 	}
 	if !plan.Images.Equal(state.Images) {
 		params.Images = convertListToStringPtrs(plan.Images)
@@ -501,9 +502,16 @@ func (r *ProductResource) buildUpdateParams(ctx context.Context, state, plan Pro
 		}
 	}
 	if !plan.Metadata.Equal(state.Metadata) {
-		for k, v := range plan.Metadata.Elements() {
+		planMetadata := plan.Metadata.Elements()
+		stateMetadata := state.Metadata.Elements()
+		for k, v := range planMetadata {
 			if str, ok := v.(types.String); ok {
 				params.AddMetadata(k, str.ValueString())
+			}
+		}
+		for k := range stateMetadata {
+			if _, exists := planMetadata[k]; !exists {
+				params.AddMetadata(k, "")
 			}
 		}
 	}
@@ -511,35 +519,44 @@ func (r *ProductResource) buildUpdateParams(ctx context.Context, state, plan Pro
 		params.Name = plan.Name.ValueStringPointer()
 	}
 	if !plan.PackageDimensions.Equal(state.PackageDimensions) {
-		packageDimensions := ProductPackageDimensionsResourceModel{}
-		diags := plan.PackageDimensions.As(ctx, &packageDimensions, basetypes.ObjectAsOptions{
-			UnhandledNullAsEmpty:    false,
-			UnhandledUnknownAsEmpty: false,
-		})
-		if diags.HasError() {
-			respDiag.Append(diags...)
-		}
-		params.PackageDimensions = &stripe.ProductPackageDimensionsParams{
-			Height: packageDimensions.Height.ValueFloat64Pointer(),
-			Length: packageDimensions.Length.ValueFloat64Pointer(),
-			Weight: packageDimensions.Weight.ValueFloat64Pointer(),
-			Width:  packageDimensions.Width.ValueFloat64Pointer(),
+		if plan.PackageDimensions.IsNull() {
+			params.PackageDimensions = &stripe.ProductPackageDimensionsParams{
+				Height: stripe.Float64(0),
+				Length: stripe.Float64(0),
+				Weight: stripe.Float64(0),
+				Width:  stripe.Float64(0),
+			}
+		} else {
+			packageDimensions := ProductPackageDimensionsResourceModel{}
+			diags := plan.PackageDimensions.As(ctx, &packageDimensions, basetypes.ObjectAsOptions{
+				UnhandledNullAsEmpty:    false,
+				UnhandledUnknownAsEmpty: false,
+			})
+			if diags.HasError() {
+				respDiag.Append(diags...)
+			}
+			params.PackageDimensions = &stripe.ProductPackageDimensionsParams{
+				Height: packageDimensions.Height.ValueFloat64Pointer(),
+				Length: packageDimensions.Length.ValueFloat64Pointer(),
+				Weight: packageDimensions.Weight.ValueFloat64Pointer(),
+				Width:  packageDimensions.Width.ValueFloat64Pointer(),
+			}
 		}
 	}
 	if !plan.Shippable.Equal(state.Shippable) {
 		params.Shippable = plan.Shippable.ValueBoolPointer()
 	}
 	if !plan.StatementDescriptor.Equal(state.StatementDescriptor) {
-		params.StatementDescriptor = plan.StatementDescriptor.ValueStringPointer()
+		params.StatementDescriptor = EmptyStringIfNull(plan.StatementDescriptor)
 	}
 	if !plan.TaxCode.Equal(state.TaxCode) {
-		params.TaxCode = plan.TaxCode.ValueStringPointer()
+		params.TaxCode = EmptyStringIfNull(plan.TaxCode)
 	}
 	if !plan.UnitLabel.Equal(state.UnitLabel) {
-		params.UnitLabel = plan.UnitLabel.ValueStringPointer()
+		params.UnitLabel = EmptyStringIfNull(plan.UnitLabel)
 	}
 	if !plan.URL.Equal(state.URL) {
-		params.URL = plan.URL.ValueStringPointer()
+		params.URL = EmptyStringIfNull(plan.URL)
 	}
 	return params
 }

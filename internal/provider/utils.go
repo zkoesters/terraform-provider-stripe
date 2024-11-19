@@ -6,6 +6,8 @@ package provider
 import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
+	"github.com/stripe/stripe-go/v81"
 )
 
 func convertListToStringPtrs(tflist types.List) []*string {
@@ -60,4 +62,11 @@ func MapValueNullIfEmpty(input types.Map, elementType attr.Type) types.Map {
 		return types.MapNull(elementType)
 	}
 	return input
+}
+
+func EmptyStringIfNull(s basetypes.StringValue) *string {
+	if s.IsNull() {
+		return stripe.String("")
+	}
+	return s.ValueStringPointer()
 }
