@@ -18,8 +18,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/float64planmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/listplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/mapplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
@@ -106,9 +106,6 @@ func (r *CouponResource) Schema(ctx context.Context, req resource.SchemaRequest,
 						"amount_off": schema.Int64Attribute{
 							MarkdownDescription: "Amount (in the `currency` specified) that will be taken off the subtotal of any invoices for this customer.",
 							Required:            true,
-							PlanModifiers: []planmodifier.Int64{
-								int64planmodifier.RequiresReplace(),
-							},
 							Validators: []validator.Int64{
 								int64validator.AtLeast(1),
 							},
@@ -122,6 +119,36 @@ func (r *CouponResource) Schema(ctx context.Context, req resource.SchemaRequest,
 					},
 				},
 				Optional: true,
+				PlanModifiers: []planmodifier.Map{
+					mapplanmodifier.RequiresReplaceIf(
+						func(ctx context.Context, request planmodifier.MapRequest, response *mapplanmodifier.RequiresReplaceIfFuncResponse) {
+							if request.PlanValue.Equal(request.StateValue) {
+								return
+							}
+							planCurrencyOptions := map[string]CouponCurrencyOptionsModel{}
+							stateCurrencyOptions := map[string]CouponCurrencyOptionsModel{}
+							request.PlanValue.ElementsAs(ctx, &planCurrencyOptions, false)
+							request.StateValue.ElementsAs(ctx, &stateCurrencyOptions, false)
+							for k, v := range planCurrencyOptions {
+								if _, exists := stateCurrencyOptions[k]; exists {
+									if stateCurrencyOptions[k].AmountOff != v.AmountOff {
+										response.RequiresReplace = true
+									}
+									if stateCurrencyOptions[k].TopLevel != v.TopLevel {
+										response.RequiresReplace = true
+									}
+								}
+							}
+							for k := range stateCurrencyOptions {
+								if _, exists := planCurrencyOptions[k]; !exists {
+									response.RequiresReplace = true
+								}
+							}
+						},
+						"If values of elements are change or elements are removed, Terraform will destroy and recreate the resource.",
+						"If values of elements are change or elements are removed, Terraform will destroy and recreate the resource.",
+					),
+				},
 				Validators: []validator.Map{
 					mapvalidator.ConflictsWith(path.MatchRelative().AtParent().AtName("percent_off")),
 				},
@@ -347,6 +374,8 @@ func (r *CouponResource) populateModel(ctx context.Context, model *CouponResourc
 		ccom.AmountOff = Int64NullIfEmpty(cco.AmountOff)
 		if string(coupon.Currency) == currency {
 			ccom.TopLevel = types.BoolValue(true)
+		} else {
+			ccom.TopLevel = types.BoolValue(false)
 		}
 		currencyOptions[currency] = ccom
 	}
@@ -452,15 +481,11 @@ func (r *CouponResource) buildUpdateParams(ctx context.Context, state, plan Coup
 		if diags.HasError() {
 			respDiag.Append(diags...)
 		}
-		for key, element := range findUniqueKeys(stateCurrencyOptions, planCurrencyOptions) {
-			if element.TopLevel.ValueBool() {
-				params.AmountOff = element.AmountOff.ValueInt64Pointer()
-				params.Currency = stripe.String(key)
-			} else {
-				cco := &stripe.CouponCurrencyOptionsParams{
-					AmountOff: element.AmountOff.ValueInt64Pointer(),
+		for k, v := range planCurrencyOptions {
+			if _, exists := stateCurrencyOptions[k]; !exists {
+				params.CurrencyOptions[k] = &stripe.CouponCurrencyOptionsParams{
+					AmountOff: v.AmountOff.ValueInt64Pointer(),
 				}
-				params.CurrencyOptions[key] = cco
 			}
 		}
 	}
@@ -489,22 +514,4 @@ func (r *CouponResource) buildUpdateParams(ctx context.Context, state, plan Coup
 	}
 
 	return params
-}
-
-func findUniqueKeys(stateMap, planMap map[string]CouponCurrencyOptionsModel) map[string]CouponCurrencyOptionsModel {
-	unique := map[string]CouponCurrencyOptionsModel{}
-
-	// Check for keys in planMap that are not in stateMap
-	for key, value := range planMap {
-		if _, exists := stateMap[key]; !exists {
-			unique[key] = value
-		} else {
-			// Check for differences in values
-			if stateMap[key] != value {
-				unique[key] = value
-			}
-		}
-	}
-
-	return unique
 }
