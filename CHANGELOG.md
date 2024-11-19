@@ -1,3 +1,9 @@
+## 0.0.3 (2024-11-18)
+
+FIXES:
+
+* Properly handle updates to coupons
+
 ## 0.0.2 (2024-11-18)
 
 FIXES:

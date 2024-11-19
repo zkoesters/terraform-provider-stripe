@@ -404,7 +404,7 @@ func TestBuildUpdateParamsCouponResource(t *testing.T) {
 			},
 		},
 		{
-			name: "change currency options only",
+			name: "add currency options only",
 			state: CouponResourceModel{
 				CurrencyOptions: types.MapValueMust(
 					types.ObjectType{
@@ -426,7 +426,11 @@ func TestBuildUpdateParamsCouponResource(t *testing.T) {
 					},
 					map[string]attr.Value{
 						"usd": types.ObjectValueMust(CouponCurrencyOptionsModel{}.Types(), map[string]attr.Value{
-							"amount_off": types.Int64Value(2000),
+							"amount_off": types.Int64Value(1000),
+							"top_level":  types.BoolValue(true),
+						}),
+						"gbp": types.ObjectValueMust(CouponCurrencyOptionsModel{}.Types(), map[string]attr.Value{
+							"amount_off": types.Int64Value(1000),
 							"top_level":  types.BoolValue(true),
 						}),
 					},
@@ -434,9 +438,13 @@ func TestBuildUpdateParamsCouponResource(t *testing.T) {
 				Name: types.StringValue("test_name"),
 			},
 			want: &stripe.CouponParams{
-				AmountOff:       stripe.Int64(2000),
-				Currency:        stripe.String("usd"),
-				CurrencyOptions: map[string]*stripe.CouponCurrencyOptionsParams{},
+				AmountOff: nil,
+				Currency:  nil,
+				CurrencyOptions: map[string]*stripe.CouponCurrencyOptionsParams{
+					"gbp": {
+						AmountOff: stripe.Int64(1000),
+					},
+				},
 			},
 		},
 	}
