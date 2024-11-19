@@ -1,3 +1,9 @@
+## 0.0.4 (2024-11-19)
+
+FIXES:
+
+* Properly handle updates to products
+
 ## 0.0.3 (2024-11-18)
 
 FIXES:

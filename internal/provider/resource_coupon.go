@@ -506,11 +506,7 @@ func (r *CouponResource) buildUpdateParams(ctx context.Context, state, plan Coup
 	}
 
 	if !plan.Name.Equal(state.Name) {
-		if plan.Name.IsNull() {
-			params.Name = stripe.String("")
-		} else {
-			params.Name = plan.Name.ValueStringPointer()
-		}
+		params.Name = EmptyStringIfNull(plan.Name)
 	}
 
 	return params
