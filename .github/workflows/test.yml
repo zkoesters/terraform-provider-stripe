@@ -35,7 +35,6 @@ jobs:
         uses: golangci/golangci-lint-action@971e284b6050e8a5849b72094c50ab08da042db8 # v6.1.1
         with:
           version: latest
-
   generate:
     runs-on: ubuntu-latest
     steps:
@@ -53,9 +52,7 @@ jobs:
         run: |
           git diff --compact-summary --exit-code || \
             (echo; echo "Unexpected difference in directories after code generation. Run 'make generate' command and commit."; exit 1)
-
-  # Run acceptance tests in a matrix with Terraform CLI versions
-  test:
+  test-terraform:
     name: Terraform Provider Acceptance Tests
     needs: build
     runs-on: ubuntu-latest
@@ -63,8 +60,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # list whatever Terraform versions here you would like to support
         terraform:
+          - '1.7.*'
           - '1.8.*'
           - '1.9.*'
     steps:
@@ -77,6 +74,34 @@ jobs:
         with:
           terraform_version: ${{ matrix.terraform }}
           terraform_wrapper: false
+      - run: go mod download
+      - env:
+          TF_ACC: "1"
+          STRIPE_API_KEY: ${{ secrets.STRIPE_API_KEY }}
+        run: go test -v -cover ./internal/provider/
+        timeout-minutes: 10
+  test-opentofu:
+    name: Opentofu Provider Acceptance Tests
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        opentofu:
+          - '1.6.*'
+          - '1.7.*'
+          - '1.8.*'
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/setup-go@41dfa10bad2bb2ae585af6ee5bb4d7d973ad74ed # v5.1.0
+        with:
+          go-version-file: 'go.mod'
+          cache: true
+      - uses: opentofu/setup-opentofu@12f4debbf681675350b6cd1f0ff8ecfbda62027b # v1.0.4
+        with:
+          tofu_version: ${{ matrix.opentofu }}
+          tofu_wrapper: false
       - run: go mod download
       - env:
           TF_ACC: "1"
