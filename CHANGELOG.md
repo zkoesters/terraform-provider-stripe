@@ -1,3 +1,9 @@
+## 0.0.5 (2024-11-20)
+
+FIXES:
+
+* Use Sets for webhook endpoint enabled events
+
 ## 0.0.4 (2024-11-19)
 
 FIXES:

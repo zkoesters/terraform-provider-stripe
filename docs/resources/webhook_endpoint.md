@@ -34,7 +34,7 @@ resource "stripe_webhook_endpoint" "example" {
 
 ### Required
 
-- `enabled_events` (List of String) The list of events to enable for this endpoint. `['*']` indicates that all events are enabled, except those that require explicit selection.
+- `enabled_events` (Set of String) The list of events to enable for this endpoint. `['*']` indicates that all events are enabled, except those that require explicit selection.
 - `url` (String) The URL of the webhook endpoint.
 
 ### Optional

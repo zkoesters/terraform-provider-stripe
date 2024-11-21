@@ -117,7 +117,7 @@ func TestBuildCreateParamsWebhookEndpointResource(t *testing.T) {
 		{
 			name: "all values provided",
 			plan: WebhookEndpointResourceModel{
-				EnabledEvents: testListValue(t, types.StringType, []attr.Value{types.StringValue("event1"), types.StringValue("event2")}),
+				EnabledEvents: testSetValue(t, types.StringType, []attr.Value{types.StringValue("event1"), types.StringValue("event2")}),
 				URL:           types.StringValue("https://example.com"),
 				Description:   types.StringValue("Test description"),
 				Metadata:      testMapValue(t, types.StringType, map[string]interface{}{"key": types.StringValue("value")}),
@@ -193,10 +193,10 @@ func TestBuildUpdateParamsWebhookEndpointResource(t *testing.T) {
 		{
 			name: "update enabled events",
 			state: WebhookEndpointResourceModel{
-				EnabledEvents: testListValue(t, types.StringType, []attr.Value{types.StringValue("event1")}),
+				EnabledEvents: testSetValue(t, types.StringType, []attr.Value{types.StringValue("event1")}),
 			},
 			plan: WebhookEndpointResourceModel{
-				EnabledEvents: testListValue(t, types.StringType, []attr.Value{types.StringValue("event1"), types.StringValue("event2")}),
+				EnabledEvents: testSetValue(t, types.StringType, []attr.Value{types.StringValue("event1"), types.StringValue("event2")}),
 			},
 			expected: stripe.WebhookEndpointParams{
 				EnabledEvents: stripe.StringSlice([]string{"event1", "event2"}),
@@ -294,7 +294,7 @@ func TestPopulateModelWebhookEndpointResource(t *testing.T) {
 				Application:   types.StringValue("app_id"),
 				Description:   types.StringValue("Test description"),
 				Disabled:      types.BoolValue(false),
-				EnabledEvents: testListValue(t, types.StringType, []attr.Value{types.StringValue("event1"), types.StringValue("event2")}),
+				EnabledEvents: testSetValue(t, types.StringType, []attr.Value{types.StringValue("event1"), types.StringValue("event2")}),
 				Metadata:      testMapValue(t, types.StringType, map[string]interface{}{"key": types.StringValue("value")}),
 				URL:           types.StringValue("https://example.com"),
 			},
@@ -316,7 +316,7 @@ func TestPopulateModelWebhookEndpointResource(t *testing.T) {
 				Application:   types.StringValue("app_id"),
 				Description:   types.StringValue("Test description"),
 				Disabled:      types.BoolValue(false),
-				EnabledEvents: testListValue(t, types.StringType, []attr.Value{types.StringValue("event1"), types.StringValue("event2")}),
+				EnabledEvents: testSetValue(t, types.StringType, []attr.Value{types.StringValue("event1"), types.StringValue("event2")}),
 				Metadata:      types.MapNull(types.StringType),
 				URL:           types.StringValue("https://example.com"),
 			},
@@ -338,7 +338,7 @@ func TestPopulateModelWebhookEndpointResource(t *testing.T) {
 				Application:   types.StringValue("app_id"),
 				Description:   types.StringValue("Test description"),
 				Disabled:      types.BoolValue(false),
-				EnabledEvents: testListValue(t, types.StringType, []attr.Value{}),
+				EnabledEvents: testSetValue(t, types.StringType, []attr.Value{}),
 				Metadata:      testMapValue(t, types.StringType, map[string]interface{}{"key": types.StringValue("value")}),
 				URL:           types.StringValue("https://example.com"),
 			},
@@ -360,7 +360,7 @@ func TestPopulateModelWebhookEndpointResource(t *testing.T) {
 				Application:   types.StringNull(),
 				Description:   types.StringNull(),
 				Disabled:      types.BoolValue(false),
-				EnabledEvents: testListValue(t, types.StringType, []attr.Value{}),
+				EnabledEvents: testSetValue(t, types.StringType, []attr.Value{}),
 				Metadata:      types.MapNull(types.StringType),
 				URL:           types.StringValue("https://example.com"),
 			},

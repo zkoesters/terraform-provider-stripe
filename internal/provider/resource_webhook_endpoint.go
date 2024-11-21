@@ -6,7 +6,6 @@ package provider
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/mapvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -44,7 +43,7 @@ type WebhookEndpointResourceModel struct {
 	Application   types.String `tfsdk:"application"`
 	Description   types.String `tfsdk:"description"`
 	Disabled      types.Bool   `tfsdk:"disabled"`
-	EnabledEvents types.List   `tfsdk:"enabled_events"`
+	EnabledEvents types.Set    `tfsdk:"enabled_events"`
 	Metadata      types.Map    `tfsdk:"metadata"`
 	Secret        types.String `tfsdk:"secret"`
 	URL           types.String `tfsdk:"url"`
@@ -96,13 +95,10 @@ func (r *WebhookEndpointResource) Schema(ctx context.Context, req resource.Schem
 					customboolplanmodifier.DisallowOnCreateOnValue(true),
 				},
 			},
-			"enabled_events": schema.ListAttribute{
+			"enabled_events": schema.SetAttribute{
 				MarkdownDescription: "The list of events to enable for this endpoint. `['*']` indicates that all events are enabled, except those that require explicit selection.",
 				ElementType:         types.StringType,
 				Required:            true,
-				Validators: []validator.List{
-					listvalidator.UniqueValues(),
-				},
 			},
 			"metadata": schema.MapAttribute{
 				MarkdownDescription: "Set of key-value pairs that you can attach to an object.",
@@ -289,7 +285,7 @@ func (r *WebhookEndpointResource) populateModel(ctx context.Context, model *Webh
 	model.APIVersion = StringNullIfEmpty(webhookEndpoint.APIVersion)
 	model.Application = StringNullIfEmpty(webhookEndpoint.Application)
 	model.Description = StringNullIfEmpty(webhookEndpoint.Description)
-	enabledEvents, diags := types.ListValueFrom(ctx, types.StringType, webhookEndpoint.EnabledEvents)
+	enabledEvents, diags := types.SetValueFrom(ctx, types.StringType, webhookEndpoint.EnabledEvents)
 	if diags.HasError() {
 		respDiag.AddError(
 			"Conversion Error",
@@ -324,7 +320,7 @@ func (r *WebhookEndpointResource) buildCreateParams(plan WebhookEndpointResource
 		params.Description = plan.Description.ValueStringPointer()
 	}
 	if !plan.EnabledEvents.IsNull() {
-		params.EnabledEvents = convertListToStringPtrs(plan.EnabledEvents)
+		params.EnabledEvents = convertSetToStringPtrs(plan.EnabledEvents)
 	}
 	if !plan.Metadata.IsNull() {
 		for k, v := range plan.Metadata.Elements() {
@@ -348,7 +344,7 @@ func (r *WebhookEndpointResource) buildUpdateParams(state, plan WebhookEndpointR
 		params.Disabled = plan.Disabled.ValueBoolPointer()
 	}
 	if !plan.EnabledEvents.Equal(state.EnabledEvents) {
-		params.EnabledEvents = convertListToStringPtrs(plan.EnabledEvents)
+		params.EnabledEvents = convertSetToStringPtrs(plan.EnabledEvents)
 	}
 	if !plan.Metadata.Equal(state.Metadata) {
 		planMetadata := plan.Metadata.Elements()
