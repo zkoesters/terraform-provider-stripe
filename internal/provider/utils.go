@@ -29,6 +29,25 @@ func convertListToStringPtrs(tflist types.List) []*string {
 	return strings
 }
 
+func convertSetToStringPtrs(set types.Set) []*string {
+	if set.IsUnknown() || set.IsNull() {
+		return nil
+	}
+
+	var strings []*string
+	for _, element := range set.Elements() {
+		if element.IsNull() {
+			strings = append(strings, nil)
+		} else {
+			if str, ok := element.(types.String); ok {
+				s := str.ValueString()
+				strings = append(strings, &s)
+			}
+		}
+	}
+	return strings
+}
+
 func Float64NullIfEmpty(input float64) types.Float64 {
 	if input == 0 {
 		return types.Float64Null()
