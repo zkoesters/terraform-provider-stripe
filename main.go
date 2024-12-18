@@ -1,6 +1,3 @@
-// Copyright (c) 2024 Zzachary Koesters
-// SPDX-License-Identifier: MPL-2.0
-
 package main
 
 import (

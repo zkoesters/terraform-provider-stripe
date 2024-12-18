@@ -13,8 +13,6 @@ Products describe the specific goods or services you offer to your customers.
 ## Example Usage
 
 ```terraform
-# Copyright (c) HashiCorp, Inc.
-
 resource "stripe_product" "example" {
   name = "Example product"
   metadata = {
