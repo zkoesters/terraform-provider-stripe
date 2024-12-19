@@ -9,7 +9,7 @@ require (
 	github.com/hashicorp/terraform-plugin-log v0.9.0
 	github.com/hashicorp/terraform-plugin-testing v1.11.0
 	github.com/stretchr/testify v1.10.0
-	github.com/stripe/stripe-go/v81 v81.1.1
+	github.com/stripe/stripe-go/v81 v81.2.0
 )
 
 require (
