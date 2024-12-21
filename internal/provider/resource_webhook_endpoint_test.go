@@ -2,12 +2,13 @@ package provider
 
 import (
 	"context"
+	"testing"
+
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/stretchr/testify/require"
 	"github.com/stripe/stripe-go/v81"
-	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )

@@ -2,6 +2,8 @@ package provider
 
 import (
 	"context"
+	"os"
+
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/function"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -10,7 +12,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/stripe/stripe-go/v81/client"
-	"os"
 )
 
 // Ensure StripeProvider satisfies various provider interfaces.

@@ -6,6 +6,7 @@ import (
 	"log"
 
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
+
 	"github.com/zkoesters/terraform-provider-stripe/internal/provider"
 )
 
