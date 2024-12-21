@@ -3,6 +3,8 @@ package provider
 import (
 	"context"
 	"fmt"
+	"regexp"
+
 	"github.com/hashicorp/terraform-plugin-framework-validators/mapvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -16,8 +18,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/stripe/stripe-go/v81"
 	"github.com/stripe/stripe-go/v81/client"
+
 	"github.com/zkoesters/terraform-provider-stripe/internal/provider/planmodifier/customboolplanmodifier"
-	"regexp"
 )
 
 var _ resource.Resource = &WebhookEndpointResource{}

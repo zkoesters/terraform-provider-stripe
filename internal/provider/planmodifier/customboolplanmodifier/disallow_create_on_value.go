@@ -3,6 +3,7 @@ package customboolplanmodifier
 import (
 	"context"
 	"fmt"
+
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"

@@ -1,9 +1,10 @@
 package provider
 
 import (
+	"testing"
+
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/stripe/stripe-go/v81"
-	"testing"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
